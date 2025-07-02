@@ -1,0 +1,42 @@
+import uuid
+from typing import TYPE_CHECKING
+
+from pydantic import EmailStr
+from sqlmodel import Field, Relationship, SQLModel
+
+from app.shared.domain.user import User
+from app.shared.domain.value_objects.id import Id
+
+if TYPE_CHECKING:
+    from app.reservations.infrastructure.models import ReservationModel
+
+
+class UserModel(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    email: EmailStr = Field(unique=True, index=True, max_length=255)
+    full_name: str | None = Field(default=None, max_length=255)
+    is_active: bool = True
+    is_superuser: bool = False
+    hashed_password: str
+    reservations: list["ReservationModel"] = Relationship(back_populates="user")
+
+    @classmethod
+    def from_domain(cls, user: User) -> "UserModel":
+        return UserModel(
+            id=user.id.to_uuid(),
+            email=user.email,
+            full_name=user.full_name,
+            is_active=user.is_active,
+            is_superuser=user.is_superuser,
+            hashed_password=user.hashed_password,
+        )
+
+    def to_domain(self) -> User:
+        return User(
+            id=Id.from_uuid(self.id),
+            email=self.email,
+            full_name=self.full_name,
+            is_active=self.is_active,
+            is_superuser=self.is_superuser,
+            hashed_password=self.hashed_password,
+        )
