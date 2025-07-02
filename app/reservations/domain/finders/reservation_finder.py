@@ -1,0 +1,13 @@
+from typing import Protocol
+
+from app.reservations.domain.collections.reservations import Reservations
+from app.reservations.domain.movie_show_reservation import MovieShowReservation
+from app.reservations.domain.reservation import CancellableReservation, Reservation
+from app.shared.domain.value_objects.id import Id
+
+
+class ReservationFinder(Protocol):
+    def find_reservation(self, reservation_id: Id) -> Reservation: ...
+    def find_movie_show_reservations_by_user_id(self, user_id: Id) -> list[MovieShowReservation]: ...
+    def find_pending(self) -> Reservations: ...
+    def find_cancellable_reservation(self, reservation_id: Id) -> CancellableReservation | None: ...
